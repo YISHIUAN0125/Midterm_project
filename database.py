@@ -2,7 +2,7 @@ import sqlite3
 import hashlib
 
 class Database:
-    def __init__(self, db_name='Midterm_project/my_web.db'): 
+    def __init__(self, db_name='Midterm_project/my_web.db'):
         self.db_name = db_name
         self.conn = sqlite3.connect(self.db_name, check_same_thread=False)
         self.cursor = self.conn.cursor()
@@ -15,7 +15,7 @@ class Database:
                 password TEXT NOT NULL
             )"""  
         )
-
+        
         self.cursor.execute(
             """CREATE TABLE IF NOT EXISTS notes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -23,7 +23,7 @@ class Database:
                 user_input TEXT,
                 llm_response TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY(user_id) REFERENCES users(id)
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
             )""" 
         )
         
@@ -34,7 +34,7 @@ class Database:
                 task TEXT,
                 completed INTEGER DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY(user_id) REFERENCES users(id)
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
             )""" 
         )
 
@@ -42,33 +42,81 @@ class Database:
             """CREATE TABLE IF NOT EXISTS literature (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER,
+                date TEXT,
                 title TEXT,
                 author TEXT,
                 abstract TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY(user_id) REFERENCES users(id)
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
             )""" 
         )
 
         self.conn.commit()
-        return True
 
-    def create_user(self, username, password):
+    def create_user(self, username: str, password: str):
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
         try:
             self.cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_password))
             self.conn.commit()
-            return True 
+            return self.cursor.lastrowid  # 回傳 user_id
         except sqlite3.IntegrityError:
-            return False
-        finally:
-            self.conn.commit() 
+            return None  # 回傳 None 表示失敗
 
-    def authenticate_user(self, username, password):
+    def get_user_id(self, username: str):
+        self.cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+        return self.cursor.fetchone()
+
+    def authenticate_user(self, username: str, password: str):
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
-        self.cursor.execute("SELECT id FROM users WHERE username = ? AND password = ?", (username, hashed_password))
-        user = self.cursor.fetchone()
-        return user[0] if user else None 
+        self.cursor.execute("SELECT id, username FROM users WHERE username = ? AND password = ?", (username, hashed_password))
+        return self.cursor.fetchone()
+
+    def add_note(self, user_id: int, user_input="", llm_response=""):
+        self.cursor.execute("INSERT INTO notes (user_id, user_input, llm_response) VALUES (?, ?, ?)", (user_id, user_input, llm_response))
+        self.conn.commit()
+        return self.cursor.lastrowid
+
+    def get_notes(self, user_id: int):
+        self.cursor.execute("SELECT id, user_input, llm_response FROM notes WHERE user_id = ?", (user_id,))
+        return self.cursor.fetchall()
+
+    def delete_note(self, note_id: int):
+        self.cursor.execute("DELETE FROM notes WHERE id = ?", (note_id,))
+        self.conn.commit()
+        return self.cursor.rowcount > 0
+
+    def add_todo(self, user_id: int, task: str):
+        self.cursor.execute("INSERT INTO todos (user_id, task) VALUES (?, ?)", (user_id, task))
+        self.conn.commit()
+        return self.cursor.lastrowid
+
+    def get_todos(self, user_id: int):
+        self.cursor.execute("SELECT id, task, completed FROM todos WHERE user_id = ?", (user_id,))
+        return self.cursor.fetchall()
+    
+    def delete_todo(self, todo_id: int):
+        self.cursor.execute("DELETE FROM todos WHERE id = ?", (todo_id,))
+        self.conn.commit()
+        return self.cursor.rowcount > 0
+
+    def add_literature(self, user_id: int, date: str, title: str, author: str, abstract: str):
+        self.cursor.execute("INSERT INTO literature (user_id, date, title, author, abstract) VALUES (?, ?, ?, ?, ?)", (user_id, date, title, author, abstract))
+        self.conn.commit()
+        return self.cursor.lastrowid
+
+    def get_literature(self, user_id: int):
+        self.cursor.execute("SELECT id, date, title, author, abstract FROM literature WHERE user_id = ?", (user_id,))
+        return self.cursor.fetchall()
+
+    def delete_literature(self, literature_id: int):
+        self.cursor.execute("DELETE FROM literature WHERE id = ?", (literature_id,))
+        self.conn.commit()
+        return self.cursor.rowcount > 0
+
+    def update_literature(self, literature_id: int, date: str, title: str, author: str, abstract: str):
+        self.cursor.execute("UPDATE literature SET date = ?, title = ?, author = ?, abstract = ? WHERE id = ?", (date, title, author, abstract, literature_id))
+        self.conn.commit()
+        return self.cursor.rowcount > 0
 
     def close(self):
         self.conn.close()
@@ -77,4 +125,4 @@ if __name__ == "__main__":
     db = Database()
     db.create_tables()
     db.close()
-    print("✅ Table create successfully")
+    print("✅ Tables created successfully")
