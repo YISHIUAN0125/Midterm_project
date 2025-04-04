@@ -2,7 +2,7 @@ import sqlite3
 import hashlib
 
 class Database:
-    def __init__(self, db_name='Midterm_project/my_web.db'):
+    def __init__(self, db_name='my_web.db'):
         self.db_name = db_name
         self.conn = sqlite3.connect(self.db_name, check_same_thread=False)
         self.cursor = self.conn.cursor()
