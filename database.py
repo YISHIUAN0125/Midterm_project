@@ -94,8 +94,8 @@ class Database:
         self.cursor.execute("SELECT id, task, completed FROM todos WHERE user_id = ?", (user_id,))
         return self.cursor.fetchall()
     
-    def delete_todo(self, todo_id: int):
-        self.cursor.execute("DELETE FROM todos WHERE id = ?", (todo_id,))
+    def delete_todo(self, todo_id:int, task: str):
+        self.cursor.execute("DELETE FROM todos WHERE id = ? and task = ?", (todo_id, task))
         self.conn.commit()
         return self.cursor.rowcount > 0
 

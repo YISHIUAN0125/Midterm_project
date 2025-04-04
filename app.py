@@ -29,10 +29,13 @@ if not st.session_state["logged_in"]:
     st.stop()
 
 # **已登入**
-st.sidebar.write(f"👤 歡迎，{st.session_state['username']}！")
-if st.sidebar.button("🚪 登出"):
-    st.session_state["logged_in"] = False
-    st.rerun()
+with st.container():
+    col1, col2 = st.columns([8, 3])  # Adjust column widths as needed
+    with col2:
+        with st.expander(f"👤 歡迎，{st.session_state['username']}！", expanded=False):
+            if st.button("🚪 登出"):
+                st.session_state["logged_in"] = False
+                st.rerun()
 
 st.session_state["user_id"] = db.get_user_id(st.session_state["username"])[0]
 
@@ -45,14 +48,20 @@ tab1, tab2, tab3 = st.tabs(["💬 AI 問答", "📋 To-Do List", "📚 文獻管
 
 # **📋 To-Do List**
 with tab2:
-    st.subheader("📋 待辦事項")
+    st.subheader("📋 新增待辦事項")
     task = st.text_input("新增任務")
     if st.button("➕ 新增"):
         db.add_todo(st.session_state["user_id"], task)
         st.rerun()
-
+    st.sidebar.write("✏️以下是最新代辦事項：")
     for todo_id, task, completed in db.get_todos(st.session_state["user_id"]):
-        st.checkbox(task, value=bool(completed), key=str(todo_id))
+        col1, col2 = st.sidebar.columns([1, 3])
+        with col1:
+            if st.button("✔️", key=f"done_{todo_id}", disabled=completed):
+                db.delete_todo(todo_id, task)
+                st.rerun()
+        with col2:
+            st.markdown(f"<span style='font-size:20px;'>{task}</span>", unsafe_allow_html=True)
 
 # **📚 文獻管理**
 with tab3:
