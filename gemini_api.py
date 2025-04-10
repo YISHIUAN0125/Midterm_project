@@ -1,4 +1,6 @@
 from google import genai
+from  dotenv import load_dotenv
+import os
 
 class  google_genai:
     def __init__(self, api_key):
@@ -11,3 +13,11 @@ class  google_genai:
             contents=contents,
         )
         return response.text
+    
+
+if __name__ == "__main__":
+    load_dotenv()
+    api_key = os.getenv("GEMINI_API_KEY")
+    agent = google_genai(api_key)
+
+    print(agent.generate_content("請問你是誰？"))

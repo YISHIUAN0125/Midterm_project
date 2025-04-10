@@ -4,6 +4,8 @@ from database import Database
 from auth import show_login, show_register
 import pandas as pd
 from gemini_api import google_genai
+from  dotenv import load_dotenv
+import os
 
 # Initialize the database connection
 if 'db' not in st.session_state:
@@ -15,7 +17,9 @@ if "logged_in" not in st.session_state:
     st.session_state["logged_in"] = False
 
 if "genai" not in st.session_state:
-    st.session_state["genai"] = google_genai("AIzaSyAJ2xg-B2azWa-2r2m2CGcRjKvIJwIDtgU")
+    load_dotenv()
+    api_key = os.getenv("GEMINI_API_KEY")
+    st.session_state["genai"] = google_genai(api_key)
 genai = st.session_state["genai"]
 
 # Initialize data_editor_selected_rows
