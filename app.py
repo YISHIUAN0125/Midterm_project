@@ -3,21 +3,30 @@ import atexit
 from database import Database
 from auth import show_login, show_register
 import pandas as pd
+from gemini_api import google_genai
 
-# 初始化資料庫
+# Initialize the database connection
 if 'db' not in st.session_state:
     st.session_state['db'] = Database()
 db = st.session_state['db']
 
-# 確保 Session State 追蹤登入狀態
+# Session state for user login
 if "logged_in" not in st.session_state:
     st.session_state["logged_in"] = False
 
-# 初始化 data_editor_selected_rows
+if "genai" not in st.session_state:
+    st.session_state["genai"] = google_genai("AIzaSyAJ2xg-B2azWa-2r2m2CGcRjKvIJwIDtgU")
+genai = st.session_state["genai"]
+
+# Initialize data_editor_selected_rows
 if "data_editor_selected_rows" not in st.session_state:
     st.session_state["data_editor_selected_rows"] = []
 
-# 如果未登入，顯示登入 / 註冊介面
+# Initialize chat history
+if "chat_history" not in st.session_state:
+    st.session_state["chat_history"] = []
+
+# If not logged in, show login/register page
 if not st.session_state["logged_in"]:
     st.sidebar.title("🔐 登入系統")
     page = st.sidebar.radio("選擇操作", ["登入", "註冊"])
@@ -28,7 +37,7 @@ if not st.session_state["logged_in"]:
         show_register()
     st.stop()
 
-# **已登入**
+# Login successful, set session state
 with st.container():
     col1, col2 = st.columns([8, 3])  # Adjust column widths as needed
     with col2:
@@ -41,12 +50,56 @@ st.session_state["user_id"] = db.get_user_id(st.session_state["username"])[0]
 
 st.title("🙂 Personal Schedule Management")
 
-tab1, tab2, tab3 = st.tabs(["💬 AI 問答", "📋 To-Do List", "📚 文獻管理"])
+tab1, tab2, tab3, tab4 = st.tabs(["💬 AI 問答", "📋 To-Do List", "📚 文獻管理", "📝備忘錄"])
 
 
-# **💬 AI 問答**
+# AI chatbot
+with tab1:
+    st.subheader("💬 AI 問答")
+    
+    chat_history = st.container()
+    input_area = st.container()
+    
+    # Text input
+    with input_area:
+        user_input = st.text_input("請輸入您的問題...")
+        if st.button("🤖 提問"):
+            if user_input:
+                response = genai.generate_content(user_input)
+                if response:
+                    st.session_state["chat_history"].append((user_input, response))
+                    st.rerun()
+                else:
+                    st.markdown("**AI 回答：** 我無法回答這個問題，請稍後再試。")
+            else:
+                st.warning("請輸入問題！")
+    
+    # Chat history
+    with chat_history:
+        # Set the height of the chat history container
+        st.markdown("""
+            <style>
+                [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"] {
+                    max-height: 400px;
+                    overflow-y: auto;
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    padding: 1rem;
+                    margin-bottom: 2rem;
+                }
+            </style>
+        """, unsafe_allow_html=True)
+        
+        # Display chat history
+        for q, a in st.session_state["chat_history"]:
+            st.markdown("---")
+            st.write("❓ **您的問題：**")
+            st.write(q)
+            st.write("🤖 **AI 回答：**")
+            st.markdown(a)
 
-# **📋 To-Do List**
+
+# To-Do List
 with tab2:
     st.subheader("📋 新增待辦事項")
     task = st.text_input("新增任務")
@@ -63,7 +116,7 @@ with tab2:
         with col2:
             st.markdown(f"<span style='font-size:20px;'>{task}</span>", unsafe_allow_html=True)
 
-# **📚 文獻管理**
+# Literature Management
 with tab3:
     st.subheader("📚 我的研究文獻")
     title = st.text_input("標題", key="title")
@@ -87,7 +140,7 @@ with tab3:
 
         df['selected'] = False
 
-        # 顯示資料表格
+        # Display the data editor with the literature data
         edited_df = st.data_editor(
             df,
             column_config={
@@ -103,7 +156,7 @@ with tab3:
             key="data_editor",
         )
 
-        # 處理刪除功能
+        # Delete selected literature
         selected_rows = edited_df[edited_df['selected'] == True]
         if not selected_rows.empty:
             if st.button("🗑️ 刪除所選文獻"):

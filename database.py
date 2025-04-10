@@ -58,9 +58,9 @@ class Database:
         try:
             self.cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_password))
             self.conn.commit()
-            return self.cursor.lastrowid  # 回傳 user_id
+            return self.cursor.lastrowid  # Return user_id
         except sqlite3.IntegrityError:
-            return None  # 回傳 None 表示失敗
+            return None  # Return None if failed to create user (e.g., username already exists)
 
     def get_user_id(self, username: str):
         self.cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
