@@ -74,7 +74,7 @@ class Database:
     def add_note(self, user_id: int, user_input="", llm_response=""):
         self.cursor.execute("INSERT INTO notes (user_id, user_input, llm_response) VALUES (?, ?, ?)", (user_id, user_input, llm_response))
         self.conn.commit()
-        return self.cursor.lastrowid
+        return True
 
     def get_notes(self, user_id: int):
         self.cursor.execute("SELECT id, user_input, llm_response FROM notes WHERE user_id = ?", (user_id,))
@@ -83,12 +83,12 @@ class Database:
     def delete_note(self, note_id: int):
         self.cursor.execute("DELETE FROM notes WHERE id = ?", (note_id,))
         self.conn.commit()
-        return self.cursor.rowcount > 0
+        return True
 
     def add_todo(self, user_id: int, task: str):
         self.cursor.execute("INSERT INTO todos (user_id, task) VALUES (?, ?)", (user_id, task))
         self.conn.commit()
-        return self.cursor.lastrowid
+        return True
 
     def get_todos(self, user_id: int):
         self.cursor.execute("SELECT id, task, completed FROM todos WHERE user_id = ?", (user_id,))
@@ -97,12 +97,12 @@ class Database:
     def delete_todo(self, todo_id:int, task: str):
         self.cursor.execute("DELETE FROM todos WHERE id = ? and task = ?", (todo_id, task))
         self.conn.commit()
-        return self.cursor.rowcount > 0
+        return True
 
     def add_literature(self, user_id: int, date: str, title: str, author: str, abstract: str):
         self.cursor.execute("INSERT INTO literature (user_id, date, title, author, abstract) VALUES (?, ?, ?, ?, ?)", (user_id, date, title, author, abstract))
         self.conn.commit()
-        return self.cursor.lastrowid
+        return True
 
     def get_literature(self, user_id: int):
         self.cursor.execute("SELECT id, date, title, author, abstract FROM literature WHERE user_id = ?", (user_id,))
@@ -111,12 +111,12 @@ class Database:
     def delete_literature(self, literature_id: int):
         self.cursor.execute("DELETE FROM literature WHERE id = ?", (literature_id,))
         self.conn.commit()
-        return self.cursor.rowcount > 0
+        return True
 
     def update_literature(self, literature_id: int, date: str, title: str, author: str, abstract: str):
         self.cursor.execute("UPDATE literature SET date = ?, title = ?, author = ?, abstract = ? WHERE id = ?", (date, title, author, abstract, literature_id))
         self.conn.commit()
-        return self.cursor.rowcount > 0
+        return True
 
     def close(self):
         self.conn.close()

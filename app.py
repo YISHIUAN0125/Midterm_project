@@ -1,7 +1,7 @@
 import streamlit as st
 import atexit
 from database import Database
-from auth import show_login, show_register
+from auth import User
 import pandas as pd
 from gemini_api import google_genai
 from  dotenv import load_dotenv
@@ -32,13 +32,14 @@ if "chat_history" not in st.session_state:
 
 # If not logged in, show login/register page
 if not st.session_state["logged_in"]:
+    user = User()
     st.sidebar.title("🔐 登入系統")
     page = st.sidebar.radio("選擇操作", ["登入", "註冊"])
 
     if page == "登入":
-        show_login()
+        user.show_login()
     else:
-        show_register()
+        user.show_register()
     st.stop()
 
 # Login successful, set session state
