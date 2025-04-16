@@ -1,6 +1,20 @@
 import sqlite3
 import hashlib
 
+class AuthUtils:
+    @staticmethod
+    def hash_password(password):
+        return hashlib.sha256(password.encode()).hexdigest()
+    @staticmethod
+    def is_valid_username(username):
+        # username can't be empty
+        return len(username) > 0
+
+    @staticmethod
+    def is_valid_password(password):
+        # password must be at least 4 characters long and contain both letters and numbers
+        return len(password) >= 4 and any(char.isdigit() for char in password) and any(char.isalpha() for char in password) 
+
 class Database:
     def __init__(self, db_name='my_web.db'):
         self.db_name = db_name
@@ -54,11 +68,11 @@ class Database:
         self.conn.commit()
 
     def create_user(self, username: str, password: str):
-        hashed_password = hashlib.sha256(password.encode()).hexdigest()
+        hashed_password = AuthUtils.hash_password(password)
         try:
             self.cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_password))
             self.conn.commit()
-            return self.cursor.lastrowid  # Return user_id
+            return self.cursor.lastrowid  # Return row ID of the newly created user
         except sqlite3.IntegrityError:
             return None  # Return None if failed to create user (e.g., username already exists)
 
@@ -67,7 +81,7 @@ class Database:
         return self.cursor.fetchone()
 
     def authenticate_user(self, username: str, password: str):
-        hashed_password = hashlib.sha256(password.encode()).hexdigest()
+        hashed_password = AuthUtils.hash_password(password)
         self.cursor.execute("SELECT id, username FROM users WHERE username = ? AND password = ?", (username, hashed_password))
         return self.cursor.fetchone()
 

@@ -1,7 +1,16 @@
 import streamlit as st
-from database import Database
+from database import Database, AuthUtils
+
+def login_required(func):
+    def wrapper(*args, **kwargs):
+        if "logged_in" not in st.session_state or not st.session_state["logged_in"]:
+            st.warning("請先登入！")
+            st.stop()
+        return func(*args, **kwargs)
+    return wrapper
 
 class User:
+    st.session_state["logged_in"] = False
     def __init__(self):
         self.db = Database()
     def show_login(self):
@@ -27,8 +36,15 @@ class User:
         password = st.text_input("密碼", type="password", key="register_password")
 
         if st.button("註冊"):
-            if self.db.create_user(username, password):
-                st.success("✅ 註冊成功，請登入！")
-            else:
-                st.error("⚠️ 帳號已存在，請換個名稱！")
-
+            try:
+                assert AuthUtils.is_valid_username(username), "使用者名稱不可為空"
+                assert AuthUtils.is_valid_password(password), "密碼至少4字元且由英文及數字組成"
+                user_id = self.db.create_user(username, password)
+                if user_id:
+                    st.session_state["logged_in"] = True
+                    st.session_state["user_id"] = user_id
+                    st.session_state["username"] = username
+                    st.success("註冊成功！")
+                    st.balloons()
+            except AssertionError as e:
+                st.error(f"❌ {e}")
