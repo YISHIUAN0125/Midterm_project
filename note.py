@@ -9,7 +9,6 @@ def show_notes_tab():
     st.subheader("我的備忘錄")
 
     user_input = st.text_area("輸入問題或筆記")
-    # llm_response = st.text_area("LLM 產生或自訂回應")
 
     if st.button("儲存筆記"):
         db.add_note(st.session_state.user_id, user_input, " ")
@@ -58,4 +57,5 @@ def show_notes_tab():
     if "user_input" in st.session_state:
         st.text_area("輸入問題或筆記", value=st.session_state["user_input"], key="user_input")
     if "llm_response" in st.session_state:
-        st.text_area("LLM 產生或自訂回應", value=st.session_state["llm_response"], key="llm_response")
+        st.text_area("LLM 回應", value=st.session_state["llm_response"], key="llm_response")
+

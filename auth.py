@@ -1,9 +1,9 @@
 import streamlit as st
 from database import db, AuthUtils
-from functools import wraps
+# from functools import wraps
 
 def login_required(func):
-    @wraps(func)
+    # @wraps(func)
     def wrapper(*args, **kwargs):
         if "logged_in" not in st.session_state or not st.session_state["logged_in"]:
             st.warning("請先登入！")
