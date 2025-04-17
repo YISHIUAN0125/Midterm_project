@@ -175,3 +175,6 @@ cython_debug/
 
 *.docx
 *test.py
+*.pptx
+*.ppt
+*.jpg
