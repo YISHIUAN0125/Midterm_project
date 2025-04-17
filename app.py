@@ -9,6 +9,7 @@ user = User()
 st.set_page_config(page_title="AI Research Companion", layout="wide")
 
 # Login check
+st.session_state["logged_in"] == False
 if st.session_state["logged_in"] == False:
     page = st.sidebar.radio("選擇頁面", ["🔐 登入", "📝 註冊"])
     if page == "🔐 登入":
