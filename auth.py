@@ -1,7 +1,9 @@
 import streamlit as st
-from database import Database, AuthUtils
+from database import db, AuthUtils
+from functools import wraps
 
 def login_required(func):
+    @wraps(func)
     def wrapper(*args, **kwargs):
         if "logged_in" not in st.session_state or not st.session_state["logged_in"]:
             st.warning("請先登入！")
@@ -12,9 +14,9 @@ def login_required(func):
 class User:
     st.session_state["logged_in"] = False
     def __init__(self):
-        self.db = Database()
+        self.db = db
     def show_login(self):
-        st.subheader("🔑 使用者登入")
+        st.subheader("使用者登入")
 
         username = st.text_input("使用者名稱")
         password = st.text_input("密碼", type="password")
@@ -30,7 +32,7 @@ class User:
                 st.error("❌ 登入失敗，請檢查帳號或密碼")
 
     def show_register(self):
-        st.subheader("🆕 註冊新帳號")
+        st.subheader("註冊新帳號")
 
         username = st.text_input("使用者名稱", key="register_username")
         password = st.text_input("密碼", type="password", key="register_password")

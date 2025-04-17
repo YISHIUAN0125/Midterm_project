@@ -94,6 +94,9 @@ class Database:
         self.cursor.execute("SELECT id, user_input, llm_response FROM notes WHERE user_id = ?", (user_id,))
         return self.cursor.fetchall()
 
+    def get_origin_note(self, note_id):
+        self.cursor.execute("SELECT id, user_input, llm_response FROM notes WHERE id = ?", (note_id,))
+        return self.cursor.fetchall()
     def delete_note(self, note_id: int):
         self.cursor.execute("DELETE FROM notes WHERE id = ?", (note_id,))
         self.conn.commit()
@@ -134,6 +137,8 @@ class Database:
 
     def close(self):
         self.conn.close()
+
+db = Database()
 
 if __name__ == "__main__":
     db = Database()

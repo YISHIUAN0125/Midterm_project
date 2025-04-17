@@ -1,14 +1,13 @@
 import streamlit as st
-from database import Database
+from database import db
 from auth import login_required
 
 @login_required
 def show_todos_tab():
-    db = Database()
     st.session_state["user_id"] = db.get_user_id(st.session_state["username"])[0]
-    st.subheader("📋 新增待辦事項")
+    st.subheader("新增待辦事項")
     task = st.text_input("新增任務")
-    if st.button("➕ 新增"):
+    if st.button("新增"):
         db.add_todo(st.session_state["user_id"], task)
         st.rerun()
     st.sidebar.write("✏️以下是最新代辦事項：")

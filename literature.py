@@ -6,13 +6,13 @@ import pandas as pd
 @login_required
 def show_literature():
     db = Database()
-    st.subheader("📚 我的研究文獻")
+    st.subheader("我的研究文獻")
     title = st.text_input("標題", key="title")
     author = st.text_input("作者", key="author")
     date = st.date_input("日期", key="date")
     abstract = st.text_area("摘要", key="abstract")
 
-    if st.button("📥 儲存"):
+    if st.button("儲存"):
         db.add_literature(st.session_state["user_id"], str(date), title, author, abstract)
         st.rerun()
 
@@ -47,7 +47,7 @@ def show_literature():
         # Delete selected literature
         selected_rows = edited_df[edited_df['selected'] == True]
         if not selected_rows.empty:
-            if st.button("🗑️ 刪除所選文獻"):
+            if st.button("刪除所選文獻"):
                 for idx, row in selected_rows.iterrows():
                     delete_literature(row['id'])
                 st.rerun()

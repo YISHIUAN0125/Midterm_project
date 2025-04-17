@@ -3,6 +3,7 @@ from  dotenv import load_dotenv
 import os
 from auth import login_required
 import streamlit as st
+from database import db
 
 class  google_genai:
     def __init__(self, api_key):
@@ -19,7 +20,7 @@ class  google_genai:
 
 @login_required
 def show_google_genai():
-    st.subheader("💬 AI 問答")
+    st.subheader("AI 問答")
     
     chat_history = st.container()
     input_area = st.container()
@@ -42,10 +43,6 @@ def show_google_genai():
                 if response:
                     st.session_state["chat_history"].append((user_input, response))
                     st.rerun()
-                else:
-                    st.markdown("**AI 回答：** 我無法回答這個問題，請稍後再試。")
-            else:
-                st.warning("請輸入問題！")
     
     # Chat history
     with chat_history:
@@ -64,12 +61,16 @@ def show_google_genai():
         """, unsafe_allow_html=True)
         
         # Display chat history
-        for q, a in st.session_state["chat_history"]:
+        for i, (q, a) in enumerate(st.session_state["chat_history"]):
             st.markdown("---")
-            st.write("❓ **您的問題：**")
+            st.write("**您的問題：**")
             st.write(q)
             st.write("**AI 回答：**")
             st.markdown(a)
+
+            if st.button("加入備忘錄", key=f"save_note_{i}"):
+                db.add_note(st.session_state.user_id, q, a)
+                st.success("✅ 已加入備忘錄！")
 
 
 if __name__ == "__main__":
