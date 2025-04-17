@@ -6,10 +6,13 @@ from literature import show_literature
 from note import show_notes_tab
 
 user = User()
+if "logged_in" not in st.session_state:
+    st.session_state["logged_in"] = False
+if "username" not in st.session_state:
+    st.session_state["username"] = ""
 st.set_page_config(page_title="AI Research Companion", layout="wide")
 
 # Login check
-st.session_state["logged_in"] == False
 if st.session_state["logged_in"] == False:
     page = st.sidebar.radio("選擇頁面", ["🔐 登入", "📝 註冊"])
     if page == "🔐 登入":
